@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet, StatusBar, Text, SafeAreaView } from "react-native";
 import TEMP_QUESTION from "../data/westerns";
 import { Button, ButtonContainer } from "../components/Button";
+import { Alert } from "../components/Alert";
 
 const styles = StyleSheet.create({
   container: {
@@ -26,20 +27,25 @@ const styles = StyleSheet.create({
 class Quiz extends React.Component {
   state = {
     correctCount: 0,
-    totalCount: TEMP_QUESTION?.length,
+    totalCount: this.props.navigation.getParam("questions", [])?.length,
     activeQuestionIndex: 0,
+    answerCorrect: false,
+    answered: false,
   };
 
   answer = (correct) => {
     this.setState(
       (state) => {
-        const nextState = {};
+        const nextState = { answered: true };
         if (correct) {
           nextState.correctCount = state.correctCount + 1;
+          nextState.answerCorrect = true;
+        } else {
+          nextState.answerCorrect = false;
         }
         return nextState;
       },
-      () => this.nextQuestion()
+      () => setTimeout(() => this.nextQuestion(), 750)
     );
   };
 
@@ -52,14 +58,22 @@ class Quiz extends React.Component {
       }
       return {
         activeQuestionIndex: nextIndex,
+        answered: false,
       };
     });
   };
 
   render() {
-    const question = TEMP_QUESTION[this.state.activeQuestionIndex];
+    const questions = this.props.navigation.getParam("questions", []);
+    const question = questions[this.state.activeQuestionIndex];
+
     return (
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: this.props.navigation.getParam("color") },
+        ]}
+      >
         <StatusBar barStyle="light-content" />
         <SafeAreaView style={styles.safeArea}>
           <View>
@@ -79,6 +93,10 @@ class Quiz extends React.Component {
             {`${this.state.correctCount}/${this.state.totalCount}`}
           </Text>
         </SafeAreaView>
+        <Alert
+          correct={this.state.answerCorrect}
+          visible={this.state.answered}
+        />
       </View>
     );
   }
